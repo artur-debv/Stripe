@@ -50,7 +50,7 @@ app.post('/checkout', async (req, res) => {
         cancel_url: `${process.env.BASE_URL}/cancel`
     })
 
-    res.redirect(session.url)
+    res.json({ url: session.url })
 })
 
 app.get('/complete', async (req, res) => {
