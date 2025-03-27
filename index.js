@@ -3,13 +3,14 @@ const express = require('express')
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 const cors = require('cors')
 
+const app = express()
+
 app.use(cors({
     origin: 'http://localhost:5173',
     methods: ['POST'],
     allowedHeaders: ['Content-Type']
 }))
 
-const app = express()
 
 app.set('view engine', 'ejs')
 
