@@ -41,7 +41,7 @@ app.post('/checkout', async (req, res) => {
             allowed_countries: ['US', 'BR']
         },
         success_url: `${process.env.BASE_URL}/complete?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${process.env.BASE_URL}/cancel`
+        cancel_url: `${process.env.BASE_URL}`
     })
 
     res.json({ url: session.url })
