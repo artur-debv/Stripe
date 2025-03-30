@@ -44,50 +44,26 @@ app.post('/checkout', async (req, res) => {
         cancel_url: `${process.env.BASE_URL}`
     })
 
+   if(session.paymentIntent.status === 'succeeded') {
+       
+    }
+
     res.json({ url: session.url })
 })
 
 
 app.get('/complete', async (req, res) => {
-    try {
-        // Recupere a sessão do Stripe usando o session_id
-        const session = await stripe.checkout.sessions.retrieve(req.query.session_id, {
-            expand: ['payment_intent']
-        });
+    const sessionId = req.query.session_id
+    const session = await stripe.checkout.sessions.retrieve(sessionId, {
+        expand: ['payment_intent']
+    })
 
-        // Verifique o status do pagamento
-        const paymentIntent = session.payment_intent;
-        const paymentStatus = paymentIntent.status;
-
-        if (paymentStatus === 'succeeded') {
-            // A compra foi bem-sucedida, exiba as informações
-            const lineItems = await stripe.checkout.sessions.listLineItems(req.query.session_id);
-
-            // Exemplo de dados a serem exibidos
-            const transactionDetails = {
-                sessionId: session.id,
-                paymentStatus: paymentStatus,
-                totalAmount: session.amount_total / 100,  // Convertendo de centavos para dólares
-                currency: session.currency,
-                products: lineItems.data.map(item => ({
-                    name: item.description,
-                    quantity: item.quantity,
-                    price: item.amount_total / 100,  // Convertendo de centavos para dólares
-                })),
-            };
-
-            // Renderize uma página de sucesso com as informações da compra
-            res.render('success', { transactionDetails });
-        } else {
-            // Se o pagamento falhou
-            res.send('O pagamento não foi concluído com sucesso.');
-        }
-    } catch (error) {
-        console.error('Erro ao processar o pagamento:', error);
-        res.status(500).send('Houve um erro ao processar o pagamento. Tente novamente mais tarde.');
+    if (session.payment_status === 'paid') {
+        res.render('success.ejs', { session })
+    } else {
+        res.render('failure.ejs')
     }
-});
-
+})
 
 app.get('/cancel', (req, res) => {
     res.redirect('/')
