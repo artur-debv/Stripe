@@ -47,6 +47,9 @@ app.post('/checkout', async (req, res) => {
     res.json({ url: session.url })
 })
 
+app.get('/complete', async (req, res)=>{
+    res.send('Compra realizada com sucesso!')
+})
 
 
 app.listen(3000, () => console.log('Server started on port 3000'))
