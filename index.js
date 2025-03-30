@@ -48,6 +48,36 @@ app.post('/checkout', async (req, res) => {
 })
 
 app.get('/complete', async (req, res) => {
+    try {
+        const session = await stripe.checkout.sessions.retrieve(req.query.session_id, {
+            expand: ['payment_intent']
+        });
+
+        const paymentIntent = session.payment_intent;
+        const lineItems = await stripe.checkout.sessions.listLineItems(req.query.session_id);
+
+        // Crie um objeto com detalhes da transação para exibir
+        const transactionDetails = {
+            sessionId: session.id,
+            paymentStatus: paymentIntent.status,
+            totalAmount: session.amount_total / 100,  // Convertendo de centavos para dólares
+            currency: session.currency,
+            products: lineItems.data.map(item => ({
+                name: item.description,
+                quantity: item.quantity,
+                price: item.amount_total / 100,  // Convertendo de centavos para dólares
+            })),
+        };
+
+        // Renderize uma página de sucesso com as informações de pagamento
+        res.render('success', { transactionDetails });
+    } catch (error) {
+        console.error('Erro ao processar o pagamento:', error);
+        res.status(500).send('Houve um erro ao processar o pagamento. Tente novamente mais tarde.');
+    }
+});
+
+app.get('/complete', async (req, res) => {
     const result = await Promise.all([
         stripe.checkout.sessions.retrieve(req.query.session_id, { expand: ['payment_intent.payment_method'] }),
         stripe.checkout.sessions.listLineItems(req.query.session_id)
