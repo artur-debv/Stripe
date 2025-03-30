@@ -48,8 +48,6 @@ app.post('/checkout', async (req, res) => {
 })
 
 app.get('/complete', async (req, res)=>{
-    const session = await stripe.checkout.sessions.retrieve(req.query.session_id)
-    console.log(session)
     res.send('Compra realizada com sucesso!')
 })
 
