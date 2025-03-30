@@ -47,46 +47,47 @@ app.post('/checkout', async (req, res) => {
     res.json({ url: session.url })
 })
 
+
 app.get('/complete', async (req, res) => {
     try {
+        // Recupere a sessão do Stripe usando o session_id
         const session = await stripe.checkout.sessions.retrieve(req.query.session_id, {
             expand: ['payment_intent']
         });
 
+        // Verifique o status do pagamento
         const paymentIntent = session.payment_intent;
-        const lineItems = await stripe.checkout.sessions.listLineItems(req.query.session_id);
+        const paymentStatus = paymentIntent.status;
 
-        // Crie um objeto com detalhes da transação para exibir
-        const transactionDetails = {
-            sessionId: session.id,
-            paymentStatus: paymentIntent.status,
-            totalAmount: session.amount_total / 100,  // Convertendo de centavos para dólares
-            currency: session.currency,
-            products: lineItems.data.map(item => ({
-                name: item.description,
-                quantity: item.quantity,
-                price: item.amount_total / 100,  // Convertendo de centavos para dólares
-            })),
-        };
+        if (paymentStatus === 'succeeded') {
+            // A compra foi bem-sucedida, exiba as informações
+            const lineItems = await stripe.checkout.sessions.listLineItems(req.query.session_id);
 
-        // Renderize uma página de sucesso com as informações de pagamento
-        res.render('success', { transactionDetails });
+            // Exemplo de dados a serem exibidos
+            const transactionDetails = {
+                sessionId: session.id,
+                paymentStatus: paymentStatus,
+                totalAmount: session.amount_total / 100,  // Convertendo de centavos para dólares
+                currency: session.currency,
+                products: lineItems.data.map(item => ({
+                    name: item.description,
+                    quantity: item.quantity,
+                    price: item.amount_total / 100,  // Convertendo de centavos para dólares
+                })),
+            };
+
+            // Renderize uma página de sucesso com as informações da compra
+            res.render('success', { transactionDetails });
+        } else {
+            // Se o pagamento falhou
+            res.send('O pagamento não foi concluído com sucesso.');
+        }
     } catch (error) {
         console.error('Erro ao processar o pagamento:', error);
         res.status(500).send('Houve um erro ao processar o pagamento. Tente novamente mais tarde.');
     }
 });
 
-app.get('/complete', async (req, res) => {
-    const result = await Promise.all([
-        stripe.checkout.sessions.retrieve(req.query.session_id, { expand: ['payment_intent.payment_method'] }),
-        stripe.checkout.sessions.listLineItems(req.query.session_id)
-    ])
-
-    console.log(JSON.stringify(result))
-
-    res.send('Your payment was successful')
-})
 
 app.get('/cancel', (req, res) => {
     res.redirect('/')
