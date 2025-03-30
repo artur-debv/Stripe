@@ -44,29 +44,9 @@ app.post('/checkout', async (req, res) => {
         cancel_url: `${process.env.BASE_URL}`
     })
 
-   if(session.paymentIntent.status === 'succeeded') {
-       
-    }
-
     res.json({ url: session.url })
 })
 
 
-app.get('/complete', async (req, res) => {
-    const sessionId = req.query.session_id
-    const session = await stripe.checkout.sessions.retrieve(sessionId, {
-        expand: ['payment_intent']
-    })
-
-    if (session.payment_status === 'paid') {
-        res.render('success.ejs', { session })
-    } else {
-        res.render('failure.ejs')
-    }
-})
-
-app.get('/cancel', (req, res) => {
-    res.redirect('/')
-})
 
 app.listen(3000, () => console.log('Server started on port 3000'))
