@@ -5,12 +5,14 @@ const cors = require('cors')
 
 const app = express()
 
+// Habilitar o parsing do corpo da requisição para JSON
+app.use(express.json())
+
 app.use(cors({
     origin: 'http://localhost:5173',
     methods: ['POST'],
     allowedHeaders: ['Content-Type']
 }))
-
 
 app.set('view engine', 'ejs')
 
@@ -19,29 +21,20 @@ app.get('/', (req, res) => {
 })
 
 app.post('/checkout', async (req, res) => {
-    const session = await stripe.checkout.sessions.create({
-        line_items: [
-            {
-                price_data: {
-                    currency: 'usd',
-                    product_data: {
-                        name: 'Node.js and Express book'
-                    },
-                    unit_amount: 50 * 100
-                },
-                quantity: 1
+    const { items } = req.body
+    const lineItems = items.map(item => ({
+        price_data: {
+            currency: 'usd',
+            product_data: {
+                name: item.name // Supondo que o item tenha um campo "name"
             },
-            {
-                price_data: {
-                    currency: 'usd',
-                    product_data: {
-                        name: 'JavaScript T-Shirt'
-                    },
-                    unit_amount: 20 * 100
-                },
-                quantity: 2
-            }            
-        ],
+            unit_amount: item.price * 100 // Convertendo o preço para centavos
+        },
+        quantity: item.quantity
+    }))
+
+    const session = await stripe.checkout.sessions.create({
+        line_items: lineItems,
         mode: 'payment',
         shipping_address_collection: {
             allowed_countries: ['US', 'BR']
@@ -54,12 +47,12 @@ app.post('/checkout', async (req, res) => {
 })
 
 app.get('/complete', async (req, res) => {
-    const result = Promise.all([
+    const result = await Promise.all([
         stripe.checkout.sessions.retrieve(req.query.session_id, { expand: ['payment_intent.payment_method'] }),
         stripe.checkout.sessions.listLineItems(req.query.session_id)
     ])
 
-    console.log(JSON.stringify(await result))
+    console.log(JSON.stringify(result))
 
     res.send('Your payment was successful')
 })
