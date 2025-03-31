@@ -49,17 +49,26 @@ app.post('/checkout', async (req, res) => {
 
 app.get('/complete', async (req, res) => {
     try {
-        const session = await stripe.checkout.sessions.retrieve(req.query.session_id)
+        const sessionId = req.query.session_id; // Captura o session_id da URL
 
-        if (session.payment_status === 'paid') {
-            res.render('complete.ejs', { sessionId: session.id })
-        } else {
-            res.send('Pagamento não concluído.')
+        if (!sessionId) {
+            return res.status(400).json({ error: "Session ID is missing" });
         }
+
+        const session = await stripe.checkout.sessions.retrieve(sessionId); // Consulta a sessão no Stripe
+
+        res.json({
+            sessionId: session.id,
+            paymentStatus: session.payment_status, // 'paid', 'unpaid', etc.
+            customerEmail: session.customer_details?.email || "Not available",
+            amountTotal: session.amount_total / 100, // Convertendo de centavos para moeda real
+            currency: session.currency
+        });
     } catch (error) {
-        console.error('Erro ao recuperar sessão:', error)
-        res.status(500).send('Erro ao processar o pagamento.')
+        console.error("Error fetching session:", error);
+        res.status(500).json({ error: "Internal Server Error" });
     }
-})
+});
+
 
 app.listen(3000, () => console.log('Server started on port 3000'))
