@@ -27,9 +27,9 @@ app.post('/checkout', async (req, res) => {
         price_data: {
             currency: 'usd',
             product_data: {
-                name: item.name // Supondo que o item tenha um campo "name"
+                name: item.name
             },
-            unit_amount: item.price * 100 // Convertendo o preço para centavos
+            unit_amount: item.price * 100
         },
         quantity: item.quantity
     }))
@@ -47,9 +47,19 @@ app.post('/checkout', async (req, res) => {
     res.json({ url: session.url })
 })
 
-app.get('/complete', async (req, res)=>{
-    res.send('Compra realizada com sucesso!')
-})
+app.get('/complete', async (req, res) => {
+    try {
+        const session = await stripe.checkout.sessions.retrieve(req.query.session_id)
 
+        if (session.payment_status === 'paid') {
+            res.render('complete.ejs', { sessionId: session.id })
+        } else {
+            res.send('Pagamento não concluído.')
+        }
+    } catch (error) {
+        console.error('Erro ao recuperar sessão:', error)
+        res.status(500).send('Erro ao processar o pagamento.')
+    }
+})
 
 app.listen(3000, () => console.log('Server started on port 3000'))
