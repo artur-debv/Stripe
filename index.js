@@ -2,6 +2,7 @@ require('dotenv').config()
 const express = require('express')
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 const cors = require('cors')
+const axios = require('axios')
 
 const app = express()
 
@@ -69,6 +70,45 @@ app.get('/complete', async (req, res) => {
         res.status(500).json({ error: "Internal Server Error" });
     }
 });
+
+
+app.post("/webhook", bodyParser.raw({ type: 'application/json' }), async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+
+    try {
+        // Criar evento com o raw body
+        const event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+
+        // Verificar o tipo do evento
+        if (event.type === 'checkout.session.completed') {
+            const session = event.data.object;
+            const email = session.customer_details?.email || "Desconhecido";
+            const valor = (session.amount_total / 100).toFixed(2);
+            await SendDiscordMessage(`🟢 Pagamento confirmado! Cliente: ${email}, Valor: $${valor}`);
+        }
+
+        if (event.type === 'invoice.payment_failed') {
+            const session = event.data.object;
+            const email = session.customer_details?.email || "Desconhecido";
+            const valor = (session.amount_total / 100).toFixed(2);
+            await SendDiscordMessage(`🔴 Pagamento falhou! Cliente: ${email}, Valor: $${valor}`);
+        }
+
+        res.status(200).send({ received: true });
+
+    } catch (err) {
+        console.error('Erro no webhook:', err.message);
+        res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+});
+
+async function SendDiscordMessage(content) {
+    try {
+        await axios.post(process.env.DISCORD_WEBHOOK_URL, { content });
+    } catch (error) {
+        console.error('Erro ao enviar mensagem para o Discord:', error.message);
+    }
+}
 
 
 app.listen(3000, () => console.log('Server started on port 3000'))
