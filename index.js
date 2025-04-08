@@ -5,9 +5,6 @@ const cors = require('cors')
 const axios = require('axios')
 const bodyParser = require('body-parser')
 
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: true }))
-
 const app = express()
 
 // Habilitar o parsing do corpo da requisição para JSON
