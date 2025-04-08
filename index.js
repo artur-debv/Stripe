@@ -3,6 +3,9 @@ const express = require('express')
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 const cors = require('cors')
 const axios = require('axios')
+const bodyParser = require('body-parser')
+
+app.use(bodyParser.json())
 
 const app = express()
 
