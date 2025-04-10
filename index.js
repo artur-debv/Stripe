@@ -62,7 +62,8 @@ app.post('/checkout', async (req, res) => {
         price_data: {
             currency: 'usd',
             product_data: {
-                name: item.name
+                name: item.name,
+                image: item.image,
             },
             unit_amount: item.price * 100
         },
