@@ -57,6 +57,7 @@ app.get('/', (req, res) => {
 
 app.post('/checkout', async (req, res) => {
     const { items } = req.body
+    console.log(items)
     const lineItems = items.map(item => ({
         price_data: {
             currency: 'usd',
@@ -69,7 +70,6 @@ app.post('/checkout', async (req, res) => {
         quantity: item.quantity
     }))
 
-   console.log(lineItems)
    
 
     const session = await stripe.checkout.sessions.create({
