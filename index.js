@@ -19,7 +19,7 @@ app.post("/webhook", bodyParser.raw({ type: 'application/json' }), async (req, r
             const session = event.data.object;
             const email = session.customer_details?.email || "Desconhecido";
             const valor = (session.amount_total / 100).toFixed(2);
-            const city = session.shipping?.address?.city || "Desconhecida";
+            const city = session.customer_details.city || "Desconhecida";
             await SendDiscordMessage(`🟢 Pagamento confirmado! Cliente: ${email}, Valor: $${valor} cidade: ${city}`);
         }
 
