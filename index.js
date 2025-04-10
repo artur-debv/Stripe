@@ -27,7 +27,7 @@ app.post("/webhook", bodyParser.raw({ type: 'application/json' }), async (req, r
             const session = event.data.object;
             const email = session.customer_details?.email || "Desconhecido";
             const valor = (session.amount_total / 100).toFixed(2);
-            await SendDiscordMessage(`🔴 Pagamento falhou! Cliente: ${email}, Valor: $${valor}`);
+            await SendDiscordMessage(`🔴 Pagamento falhou! Cliente: ${email}, Valor: $${valor}, cidade: ${city} `);
         }
 
         res.status(200).send({ received: true });
