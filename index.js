@@ -20,7 +20,7 @@ app.post("/webhook", bodyParser.raw({ type: 'application/json' }), async (req, r
             const email = session.customer_details?.email || "Desconhecido";
             const valor = (session.amount_total / 100).toFixed(2);
             const city = session.customer_details?.address?.city || "Desconhecida";
-            await SendDiscordMessage(`🟢 Pagamento confirmado! Cliente: ${email}, Valor: $${valor} cidade: ${city}`);
+            await SendDiscordMessage(`🟢 Pagamento confirmado! Cliente: ${email}, Valor: $${valor}, cidade: ${city}`);
         }
 
         if (event.type === 'invoice.payment_failed') {
