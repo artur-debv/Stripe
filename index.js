@@ -63,12 +63,15 @@ app.post('/checkout', async (req, res) => {
             currency: 'usd',
             product_data: {
                 name: item.name,
-                images: [item.image],
+                images: [item.images],
             },
             unit_amount: item.price * 100
         },
         quantity: item.quantity
     }))
+
+   
+   
 
     const session = await stripe.checkout.sessions.create({
         line_items: lineItems,
